@@ -17,7 +17,8 @@ namespace Utilities.Enumerators
   // The converter would map TesterBin.thrd to index 0 and fst to index 2.
   public sealed class EnumToIntConverter<TEnum> where TEnum : struct, IConvertible, IComparable, IFormattable
   {
-    private Dictionary<TEnum, Int32> _indexLookUp;
+    private Dictionary<TEnum, Int32> _enumToIntDict;
+    private Dictionary<Int32, TEnum> _intToEnumDict;
     private int _size;
     private static EnumToIntConverter<TEnum> _Instance;
 
@@ -32,13 +33,12 @@ namespace Utilities.Enumerators
       }
       int i = 0;
       this._size = Enum.GetValues(typeof(TEnum)).Length;
-      this._indexLookUp = new Dictionary<TEnum, Int32>(this._size);
+      this._enumToIntDict = new Dictionary<TEnum, Int32>(this._size);
+      this._intToEnumDict = new Dictionary<Int32, TEnum>(this._size);
       foreach (TEnum valAsEnum in Enum.GetValues(typeof(TEnum)))
       {
-        this._indexLookUp.Add(valAsEnum, i);
-        #if (DEBUG)
-          Console.WriteLine("added mapping between: " + valAsEnum + " and " + i);
-        #endif
+        this._enumToIntDict.Add(valAsEnum, i);
+        this._intToEnumDict.Add(i, valAsEnum);
         i++;
       }
     }
@@ -48,7 +48,7 @@ namespace Utilities.Enumerators
     {
       get 
       {
-        return this._indexLookUp[iterator];
+        return this._enumToIntDict[iterator];
       }
     }
 
@@ -60,13 +60,18 @@ namespace Utilities.Enumerators
       }
     }
 
+    public TEnum IntToEnum(int enumAsInt)
+    {
+      return this._intToEnumDict[enumAsInt];
+    }
+
     public static EnumToIntConverter<TEnum> Instance
     {
       get 
       {
         if (EnumToIntConverter<TEnum>._Instance == null)
         {
-          return new EnumToIntConverter<TEnum>();
+          EnumToIntConverter<TEnum>._Instance = new EnumToIntConverter<TEnum>();
         }
         return EnumToIntConverter<TEnum>._Instance;
       }
